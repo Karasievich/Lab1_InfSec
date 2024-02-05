@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script th:inline="javascript">
+        var cartItems = [];
+        function addToCart(button) {
+            var id = button.getAttribute('data-id');
+            var name = button.getAttribute('data-name');
+            var price = button.getAttribute('data-price');
+
+            fetch('/addToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    name: name,
+                    price: price
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    cartItems = data;
+                    updateCart();
+                })
+        }
+        function updateCart() {
+            var cartItemsContainer = document.querySelector('.cart-items');
+            var totalPriceContainer = document.querySelector('.total-price');
+            var cartHTML = '';
+            var totalPrice = 0;
+
+            for (var i = 0; i < cartItems.length; i++) {
+                cartHTML += '<div class="cart-item">' + cartItems[i].name + ' ' + cartItems[i].price + '</div>';
+                totalPrice += cartItems[i].price;
+            }
+
+            cartItemsContainer.innerHTML = cartHTML;
+            totalPriceContainer.innerHTML = 'Общая цена: ' + totalPrice + ' рублей';
+        }
+
+
+            function submitComment(event, productId) {
+                event.preventDefault();
+                var commentInput = event.target.querySelector('#comment');
+                var comment = commentInput.value;
+                console.log('Комментарий к товару с ID ' + productId + ': ' + comment);
+        }
+    </script>
+    <style>
+        .product {
+        float: left;
+            width: 10%;
+            height: 100px;
+            margin: 10px;
+            text-align: center;
+        }
+        .product-image {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 15px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            margin-bottom: 5px;
+        }
+
+        .cart {
+            margin-top: 20px;
+            padding: 6px;
+            border-radius: 4px;
+            max-width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+    </style>
+    <title>Интернет-магазин</title>
+</head>
+<body>
+<h1><center>Добро пожаловать в магазин курсов</center></h1>
+
+<div th:each="product : ${products}">
+    <div class="product">
+        <img th:src="@{'/' + ${product.imageUrl}}" class="product-image" />
+        <a th:href="@{'/product/' + ${product.id}}">
+            <div class="product-name" th:text="${product.name}"></div>
+        </a>
+        <div class="product-price" th:text="${product.price} + ' рублей'"></div>
+        <button th:attr="data-id=${product.id}, data-name=${product.name}, data-price=${product.price}" onclick="addToCart(this)">Добавить в корзину</button>
+        <form onsubmit="submitComment(event, ${product.id})">
+        <label for="comment">Оставьте комментарий:</label>
+        <input type="text" id="comment" name="comment" required>
+        <button type="submit">Отправить комментарий</button>
+        </form>
+    </div>
+</div>
+
+<div class="cart">
+    <h2>Корзина</h2>
+    <div class="cart-items"></div>
+    <div class="total-price"></div>
+</div>
+
+</body>
+</html>
